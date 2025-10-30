@@ -1,3 +1,9 @@
+<!--
+  File: public/index.html
+  Description: This is the main login and signup page for the chat application.
+  It provides a single form that toggles between "Log In" and "Sign Up" modes.
+  The client-side logic for this page is handled by /js/login.js.
+-->
 <!DOCTYPE html>
 <html class="dark" lang="en">
   <head>
@@ -5,6 +11,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ChatApp - Login (Readers-Writers)</title>
 
+    <!-- Tailwind CSS and Google Fonts -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
@@ -17,6 +24,7 @@
       rel="stylesheet"
     />
 
+    <!-- Inline Tailwind Configuration -->
     <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -34,13 +42,17 @@
       };
     </script>
 
+    <!-- Link to your custom CSS file (if any) -->
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body class="font-display">
     <div
       class="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#0d151c] group/design-root overflow-x-hidden p-4"
     >
+      <!-- Background grid effect -->
       <div class="absolute inset-0 maths-grid"></div>
+
+      <!-- Main Content Container -->
       <div
         class="relative z-10 flex flex-col items-center justify-center w-full"
       >
@@ -48,14 +60,22 @@
           Readers-Writers Chat
         </h1>
 
+        <!-- 
+          Authentication Form
+          This single form is used for both login and signup.
+          The logic in /js/login.js handles the submission to the correct
+          API endpoint (/api/login or /api/signup) based on the selected mode.
+        -->
         <form
           id="auth-form"
           class="w-full max-w-md rounded-xl bg-[#111A22]/80 backdrop-blur-sm border border-white/10 shadow-lg p-6 md:p-8"
         >
           <div class="flex flex-col gap-6">
+            <!-- Auth Mode Toggle (Login / Sign Up) -->
             <div
               class="flex h-10 w-full items-center justify-center rounded-lg bg-[#233648]/50 p-1"
             >
+              <!-- Login Toggle -->
               <label
                 class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 text-sm font-medium leading-normal text-[#92ADC9] has-[:checked]:bg-[#101922] has-[:checked]:text-white has-[:checked]:shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
               >
@@ -68,6 +88,7 @@
                   value="login"
                 />
               </label>
+              <!-- Sign Up Toggle -->
               <label
                 class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 text-sm font-medium leading-normal text-[#92ADC9] has-[:checked]:bg-[#101922] has-[:checked]:text-white has-[:checked]:shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
               >
@@ -81,7 +102,9 @@
               </label>
             </div>
 
+            <!-- Form Fields -->
             <div class="flex flex-col gap-4">
+              <!-- Email Input (used for both login/signup) -->
               <label class="flex flex-col flex-1">
                 <p class="text-sm font-medium leading-normal pb-2 text-white">
                   Email
@@ -95,6 +118,7 @@
                   required
                 />
               </label>
+              <!-- Password Input (used for both login/signup) -->
               <label class="flex flex-col flex-1">
                 <div class="flex items-baseline justify-between pb-2">
                   <p class="text-sm font-medium leading-normal text-white">
@@ -112,6 +136,7 @@
                     value=""
                     required
                   />
+                  <!-- Password Visibility Toggle Button -->
                   <button
                     type="button"
                     id="toggle-password"
@@ -127,7 +152,12 @@
               </label>
             </div>
 
-            <!-- Role Selector (Sign Up only) -->
+            <!-- 
+              Role Selector (Visible only in "Sign Up" mode) 
+              This is the key part of the project statement:
+              "clients are dynamically categorized as either readers or writers,
+              based on user input through an HTML form."
+            -->
             <div
               id="role-selector-container"
               class="flex flex-col gap-3 hidden"
@@ -136,6 +166,7 @@
                 Select Your Role
               </p>
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <!-- Reader Role Option -->
                 <label
                   class="group/role flex cursor-pointer flex-col gap-2 rounded-xl border-2 border-[#324d67] bg-transparent p-4 has-[:checked]:border-accent-green has-[:checked]:bg-accent-green/10"
                 >
@@ -158,6 +189,7 @@
                     Join to view conversations and follow discussions.
                   </p>
                 </label>
+                <!-- Writer Role Option -->
                 <label
                   class="group/role flex cursor-pointer flex-col gap-2 rounded-xl border-2 border-[#324d67] bg-transparent p-4 has-[:checked]:border-accent-green has-[:checked]:bg-accent-green/10"
                 >
@@ -182,6 +214,7 @@
               </div>
             </div>
 
+            <!-- Submit Button (Text changes based on mode) -->
             <button
               id="submit-button"
               type="submit"
@@ -190,6 +223,7 @@
               Enter Chat
             </button>
 
+            <!-- Error Message Display -->
             <div
               id="error-message"
               class="text-red-400 text-sm text-center hidden"
@@ -197,6 +231,7 @@
           </div>
         </form>
 
+        <!-- Helper text for test users -->
         <div class="pt-6 text-center">
           <p class="text-xs text-slate-400">
             Test users: <strong>writer@example.com</strong> or
@@ -205,6 +240,7 @@
         </div>
       </div>
     </div>
+    <!-- Load the client-side JavaScript for this page -->
     <script src="/js/login.js"></script>
   </body>
 </html>
