@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>About Us</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: { primary: "#10b981", "background-dark": "#0a0a0a" },
+            fontFamily: { display: ["Inter", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+  </head>
+  <body class="bg-background-dark font-display text-slate-200">
+    <div
+      class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8"
+    >
+      <div
+        class="flex w-full max-w-3xl flex-col gap-8 overflow-hidden rounded-xl border border-teal-500/20 bg-black/50 p-6 backdrop-blur-sm shadow-2xl md:p-8 lg:p-10"
+      >
+        <header>
+          <h1 class="text-primary text-4xl font-black">About This Project</h1>
+        </header>
+
+        <section>
+          <div>
+            <p>
+              This is a project for Computer Networks Laboratory under
+              <span class="text-primary text-base font-black"
+                >Dr. Krutika Verma</span
+              >. We are a team of 3 -
+              <strong>Ayusman Pati (23051824), Aditya Vikram (23051810)</strong>
+              and <strong>Abhijeet Patra (23051805)</strong>. The project is
+              based Operating System's classic Reader-Writer problem,
+              implemented through socket programmming using JavaScript, HTML,
+              CSS and Tailwind. This project aims to understand networks and
+              implement them in our system. It is a prototype of our upcoming
+              project.
+              <span class="text-xs font-mono text-yellow-300"
+                >(P.S. There is an Easter Egg. :P)</span
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- Navigation Link -->
+        <div class="border-t border-teal-500/20 pt-6 mt-4">
+          <a
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50 w-max"
+            href="/profile"
+          >
+            <span class="material-symbols-outlined text-slate-400 text-2xl"
+              >arrow_back</span
+            >
+            <p class="text-slate-300 text-sm font-medium leading-normal">
+              Back to Profile
+            </p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,23 +1,15 @@
 /*
- * src/authHandler.js
- *
- * UPDATED:
- * - Imports `users` and `createUser` from the new `src/db.js`.
- * - Exports `generateToken` so `chatServer.js` can use it.
- * - `generateToken` now includes `name` and `avatar`.
- * - `handleSignup` now uses `createUser` to make a full user object.
- *
- * - (Gemini Fix) Imported `isWriterActive` from sessionState.js
- * to block login/signup if a Writer is already active.
+ * - Imports users and createUser from the new src/db.js.
+ * - Exports generateToken so chatServer.js can use it.
+ * - generateToken includes name.
+ * - handleSignup now uses createUser to make a full user object.
  */
 
 const crypto = require("crypto");
-// --- FIX ---
-// Import from our new shared database file
+// Import from the new shared database file
 const { users, createUser } = require("./db.js");
 // Import the state-checker function
 const { isWriterActive } = require("./sessionState.js");
-// --- END FIX ---
 
 // Helper function to parse JSON body
 function parseJsonBody(req) {
@@ -35,19 +27,16 @@ function parseJsonBody(req) {
   });
 }
 
-// --- FIX ---
-// Now generates a token with the 'name' and 'avatar' fields
+// Generates a token with the 'name' field
 function generateToken(user) {
   const tokenPayload = {
     id: user.id,
     email: user.email,
     role: user.role,
-    name: user.name, // Add name
-    avatar: user.avatar, // Add avatar
+    name: user.name,
   };
   return Buffer.from(JSON.stringify(tokenPayload)).toString("base64");
 }
-// --- END FIX ---
 
 async function handleLogin(req, res) {
   try {
@@ -55,7 +44,7 @@ async function handleLogin(req, res) {
     const user = users.get(email);
 
     if (user && user.password === password) {
-      // --- FIX: Check if a Writer is already active ---
+      // Check if a Writer is already active
       if (user.role === "Writer" && isWriterActive()) {
         res.writeHead(409, { "Content-Type": "application/json" }); // 409 Conflict
         return res.end(
@@ -65,7 +54,6 @@ async function handleLogin(req, res) {
           })
         );
       }
-      // --- END FIX ---
 
       const token = generateToken(user);
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -96,7 +84,7 @@ async function handleSignup(req, res) {
       return res.end(JSON.stringify({ message: "User already exists" }));
     }
 
-    // --- FIX: Check if a Writer is already active ---
+    // Check if a Writer is already active
     if (role === "Writer" && isWriterActive()) {
       res.writeHead(409, { "Content-Type": "application/json" }); // 409 Conflict
       return res.end(
@@ -106,14 +94,11 @@ async function handleSignup(req, res) {
         })
       );
     }
-    // --- END FIX ---
 
-    // --- FIX ---
     // Use our new createUser function
     const newUser = createUser(email, password, role);
     users.set(email, newUser);
     console.log("New user created:", newUser);
-    // --- END FIX ---
 
     const token = generateToken(newUser);
     res.writeHead(201, { "Content-Type": "application/json" });
@@ -124,7 +109,5 @@ async function handleSignup(req, res) {
   }
 }
 
-// --- FIX ---
 // Export generateToken so chatServer can create new tokens
 module.exports = { handleLogin, handleSignup, generateToken };
-// --- END FIX ---

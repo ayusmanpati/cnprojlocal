@@ -1,13 +1,3 @@
-/*
- * public/js/login.js
- * Handles client-side interactivity for the login/signup page.
- *
- * UPDATED:
- * - Fixed Issue 1: Error messages now correctly display on failed login
- * without being cleared by the button-reset logic.
- * - (Gemini Fix) Swapped localStorage to sessionStorage to make logins tab-specific.
- */
-
 document.addEventListener("DOMContentLoaded", () => {
   const authForm = document.getElementById("auth-form");
   const authToggles = document.getElementsByName("auth-toggle");
@@ -89,24 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (response.ok) {
         console.log("Success:", data.message);
-        // --- FIX ---
         // Use sessionStorage to keep tokens tab-specific
         sessionStorage.setItem("chatToken", data.token); // Save the token
-        // --- END FIX ---
         window.location.href = "/chat"; // Redirect
       } else {
-        // --- FIX for Issue 1 ---
         // On failure, show error and reset button
         showError(data.message || "An unknown error occurred.");
         resetButton();
-        // --- End Fix ---
       }
     } catch (error) {
-      // --- FIX for Issue 1 ---
       // On network error, show error and reset button
       showError("Could not connect to the server.");
       resetButton();
-      // --- End Fix ---
     }
   });
 

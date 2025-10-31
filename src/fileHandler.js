@@ -1,7 +1,5 @@
 /*
- * src/fileHandler.js
- * This module is responsible for reading and serving static files
- * from the 'public' directory (e.g., HTML, CSS, client-side JS).
+ * This module is responsible for reading and serving static files from the 'public' directory (e.g., HTML, CSS, client-side JS).
  */
 
 const fs = require("fs");

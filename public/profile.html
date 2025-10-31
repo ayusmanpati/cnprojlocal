@@ -1,10 +1,3 @@
-<!--
-  File: public/profile.html
-  Description: This page allows a user to update their profile information (like their name).
-  It's a separate page from the main chat.
-  The logic in /js/profile.js handles loading user data from the token
-  and sending updates to the server via a special, temporary WebSocket connection.
--->
 <!DOCTYPE html>
 <html class="dark" lang="en">
   <head>
@@ -37,40 +30,21 @@
       .material-symbols-outlined {
         font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
       }
-      .math-grid {
-        background-image: linear-gradient(
-            to right,
-            rgba(45, 212, 191, 0.1) 1px,
-            transparent 1px
-          ),
-          linear-gradient(
-            to bottom,
-            rgba(45, 212, 191, 0.1) 1px,
-            transparent 1px
-          );
-        background-size: 30px 30px;
-      }
     </style>
   </head>
   <body class="bg-background-dark font-display text-slate-200">
     <div
-      class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8 math-grid"
+      class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8"
     >
       <div
         class="flex w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-teal-500/20 bg-black/50 backdrop-blur-sm shadow-2xl md:flex-row"
       >
-        <!-- Profile Page Sidebar -->
         <aside
           class="w-full border-b border-teal-500/20 p-4 md:w-64 md:border-b-0 md:border-r"
         >
           <div class="flex h-full flex-col justify-between">
             <div class="flex flex-col gap-4">
-              <!-- User info header (populated by profile.js) -->
               <div class="flex items-center gap-3">
-                <div
-                  id="user-avatar-small"
-                  class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                ></div>
                 <div class="flex flex-col">
                   <h1
                     id="user-name-header"
@@ -86,7 +60,6 @@
                   </p>
                 </div>
               </div>
-              <!-- Navigation -->
               <nav class="flex flex-col gap-1 mt-4">
                 <a
                   class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20"
@@ -97,6 +70,19 @@
                   >
                   <p class="text-primary text-sm font-medium leading-normal">
                     Profile
+                  </p>
+                </a>
+
+                <a
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50"
+                  href="/about"
+                >
+                  <span
+                    class="material-symbols-outlined text-slate-400 text-2xl"
+                    >info</span
+                  >
+                  <p class="text-slate-300 text-sm font-medium leading-normal">
+                    About Us
                   </p>
                 </a>
                 <a
@@ -113,7 +99,6 @@
                 </a>
               </nav>
             </div>
-            <!-- Logout Button -->
             <div class="flex flex-col gap-1 mt-8">
               <a
                 id="logout-button"
@@ -130,54 +115,27 @@
           </div>
         </aside>
 
-        <!-- Main Profile Settings Area -->
         <main class="flex-1 p-6 md:p-8 lg:p-10">
           <div class="flex flex-col gap-8">
             <header>
               <h1 class="text-primary text-4xl font-black">Profile Settings</h1>
             </header>
-            <!-- User Avatar and Role Section -->
             <section
               class="flex flex-col gap-4 border-b border-teal-500/20 pb-8 sm:flex-row sm:items-center sm:justify-between"
             >
               <div class="flex items-center gap-4">
-                <!-- Large Avatar -->
-                <div class="relative group">
-                  <div
-                    id="user-avatar-large"
-                    class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-24 w-24 sm:h-32 sm:w-32"
-                  ></div>
-                  <!-- Avatar edit button (non-functional in this demo) -->
-                  <div
-                    class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <span class="material-symbols-outlined text-white text-3xl"
-                      >edit</span
-                    >
-                  </div>
-                </div>
-                <!-- User Name and Role Badge -->
                 <div class="flex flex-col justify-center gap-1">
                   <div class="flex items-center gap-3">
-                    <p
-                      id="user-name-main"
-                      class="text-white text-[22px] font-bold"
-                    >
-                      ...
-                    </p>
                     <div
                       id="role-badge"
                       class="inline-flex items-center justify-center rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary"
-                    >
-                      ...
-                    </div>
+                    ></div>
                   </div>
                   <p class="text-slate-400 text-base">
-                    Update your photo and personal details.
+                    Update your personal details.
                   </p>
                 </div>
               </div>
-              <!-- Action Buttons -->
               <div class="flex gap-2 justify-end">
                 <button
                   id="cancel-button"
@@ -193,13 +151,11 @@
                 </button>
               </div>
             </section>
-            <!-- Personal Information Form -->
             <section>
               <h2 class="text-primary text-[22px] font-bold pb-5">
                 Personal Information
               </h2>
               <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <!-- Full Name Input -->
                 <label class="flex flex-col sm:col-span-1">
                   <p class="text-slate-200 text-base font-medium pb-2">
                     Full Name
@@ -210,7 +166,6 @@
                     value="..."
                   />
                 </label>
-                <!-- Email Input (Read-only) -->
                 <label class="flex flex-col sm:col-span-1">
                   <p class="text-slate-200 text-base font-medium pb-2">
                     Email Address
@@ -223,7 +178,6 @@
                     value="..."
                   />
                 </label>
-                <!-- Bio Textarea (non-functional in this demo) -->
                 <label class="flex flex-col sm:col-span-2">
                   <p class="text-slate-200 text-base font-medium pb-2">Bio</p>
                   <textarea
@@ -237,7 +191,6 @@
         </main>
       </div>
     </div>
-    <!-- Load the client-side JavaScript for this page -->
     <script src="/js/profile.js" defer></script>
   </body>
 </html>

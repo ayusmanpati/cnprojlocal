@@ -1,5 +1,4 @@
 /*
- * server.js
  * This is the main entry point for the Node.js application.
  * It creates the HTTP server and integrates the router and WebSocket server.
  */

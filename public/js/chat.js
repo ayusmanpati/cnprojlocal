@@ -1,16 +1,3 @@
-/*
- * public/js/chat.js
- *
- * UPDATED:
- * - (Issue 1) Added `case 'forceDisconnect'` to handle being
- * logged out by a new session.
- * - (Issue 2) `renderParticipantList()` now uses `client.name`
- * instead of `client.email` as the main display name.
- * - (Issue 2) `renderMessage()` now uses `msg.user.name`
- * instead of `msg.user.email` as the main display name.
- * - (Gemini Fix) Swapped localStorage to sessionStorage to make logins tab-specific.
- */
-
 document.addEventListener("DOMContentLoaded", () => {
   const messageContainer = document.getElementById("message-container");
   const chatForm = document.getElementById("chat-form");
@@ -24,10 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let socket = null;
 
-  // --- FIX ---
   // Read from sessionStorage
   const token = sessionStorage.getItem("chatToken");
-  // --- END FIX ---
   if (!token) {
     window.location.href = "/";
     return;
@@ -89,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
         showInputError(data.message);
         break;
 
-      // --- FIX for Issue 1: Handle Forced Disconnect ---
       case "forceDisconnect":
         renderSystemMessage(data.message);
         messageInput.disabled = true;
@@ -98,7 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
         roleStatus.classList.add("text-red-500");
         socket.close(); // Close the socket
         break;
-      // --- END FIX ---
     }
   };
 
@@ -135,14 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const pendingMessage = {
         id: null,
         tempId: tempId,
-        // --- FIX ---
         // Use the full user object from `currentUser`
         user: {
           email: currentUser.email,
           name: currentUser.name,
-          avatar: currentUser.avatar,
         },
-        // --- END FIX ---
         content: messageContent,
         timestamp: new Date().toISOString(),
       };
@@ -190,19 +170,12 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "bg-matrix-green/10 border border-matrix-green/50"
             : "hover:bg-matrix-grid"
         }">
-          <div class.relative">
-            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" style="background-image: url('${
-              client.avatar
-            }');"></div>
-            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-matrix-panel"></span>
-          </div>
-          <!-- FIX: Use client.name instead of client.email -->
           <p class="text-sm font-medium leading-normal ${
             isYou
               ? "text-matrix-green font-semibold"
               : "text-matrix-text-primary"
           }">
-            ${client.name} ${isYou ? "(You)" : ""}
+            ${client.name}
           </p>
           <span class="material-symbols-outlined text-xl ml-auto ${
             isYou ? "text-matrix-green" : "text-matrix-text-secondary"
@@ -227,27 +200,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "text-yellow-400"
       : "text-matrix-text-secondary";
     const pendingClass = isPending ? "opacity-70" : "";
-    const avatar =
-      msg.user.avatar || "https://api.dicebear.com/8.x/lorelei/svg";
-    // --- FIX: Use msg.user.name instead of msg.user.email ---
     const displayName = isYou ? "You" : msg.user.name || msg.user.email;
-    // --- END FIX ---
 
     const messageHtml = `
       <div class="flex gap-3 ${pendingClass}" id="${messageId}">
-        ${
-          !isYou
-            ? `<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 flex-shrink-0" style="background-image: url('${avatar}');"></div>`
-            : '<div class="w-10 flex-shrink-0"></div>'
-        }
-        
         <div class="flex flex-1 flex-col items-stretch gap-1 ${
           isYou ? "items-end" : ""
         }">
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1 ${
             isYou ? "flex-row-reverse" : ""
           }">
-            <!-- Use displayName -->
             <p class="text-matrix-green text-base font-bold leading-tight">${displayName}</p>
             <p class="message-status text-sm font-normal leading-normal ${statusColor}">${timeOrStatus}</p>
           </div>
@@ -260,12 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         
-        ${
-          isYou
-            ? `<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 flex-shrink-0" style="background-image: url('${avatar}');"></div>`
-            : '<div class="w-10 flex-shrink-0"></div>'
-        }
-      </div>
+        </div>
     `;
     messageContainer.innerHTML += messageHtml;
     scrollToBottom();
@@ -285,14 +242,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateRoleUI(role) {
     if (role === "Reader") {
-      roleStatus.textContent = "You are a Reader (view only)";
+      roleStatus.textContent = "You are a Reader --> View Only";
       roleStatus.classList.add("text-yellow-400");
       messageInput.placeholder = "Readers cannot send messages...";
       messageInput.disabled = true;
       sendButton.disabled = true;
       sendButton.classList.add("opacity-50", "cursor-not-allowed");
     } else {
-      roleStatus.textContent = "You are a Writer (can send messages)";
+      roleStatus.textContent = "You are a Writer --> Can send Messages";
       roleStatus.classList.add("text-matrix-green");
       messageInput.placeholder = "Type your message here...";
       messageInput.disabled = false;

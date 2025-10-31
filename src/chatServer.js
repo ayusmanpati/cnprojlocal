@@ -1,38 +1,11 @@
-/*
- * src/chatServer.js
- *
- * UPDATED:
- * - (Issue 1) Implemented a "reconnection grace period"
- * to prevent "left"/"joined" messages on page reloads/navigation.
- * - Added `disconnectTimers` Map.
- * - `on('close')`: Now starts a 5-second timer
- * instead of immediately broadcasting a 'left' message.
- * - `on('connection')`: Now checks for and clears this
- * timer, suppressing the 'joined' message for
- * fast reconnections.
- *
- * - (Issue 2) Isolated profile updates to stop them from
- * interfering with the main chat session.
- * - `on('connection')`: Checks for a `purpose=profile`
- * query param.
- * - If `purpose=profile`, the server *only* handles the
- * `profileUpdate` message and does *not* add the user
- * to the main chat, fixing the duplicate session bug.
- *
- * - (Gemini Fix) Imported `clients` map from sessionState.js
- * to share active user state with authHandler.js.
- */
-
 const { WebSocketServer } = require("ws");
 const url = require("url");
 const crypto = require("crypto");
 const { users } = require("./db.js");
 const { generateToken } = require("./authHandler.js");
 
-// --- FIX ---
 // Import shared state instead of using a local clients map
 const { clients } = require("./sessionState.js");
-// --- END FIX ---
 
 const chatHistory = [];
 // const clients = new Map(); // This is now imported from sessionState.js
@@ -64,28 +37,20 @@ function setupWebSocketServer(httpServer) {
       ws.close(1008, "Authentication failed");
       return;
     }
-
-    // --- FIX 2: Handle special-purpose connections (like profile update) ---
     if (purpose === "profile") {
       console.log(`Handling isolated profile update for ${userInfo.email}`);
       handleProfileUpdateConnection(ws, userInfo);
       return; // Stop processing as a full chat client
     }
-    // --- End Fix 2 ---
+    console.log(`Client connecting: ${userInfo.email} as ${userInfo.role}`); // Reconnection Grace Period Logic
 
-    console.log(`Client connecting: ${userInfo.email} as ${userInfo.role}`);
-
-    // --- FIX 1: Reconnection Grace Period Logic ---
     let isReconnection = false;
     if (disconnectTimers.has(userInfo.email)) {
       console.log(`Client reconnected within grace period: ${userInfo.email}`);
       isReconnection = true;
       clearTimeout(disconnectTimers.get(userInfo.email));
       disconnectTimers.delete(userInfo.email);
-    }
-    // --- End Fix 1 ---
-
-    // --- Handle Duplicate Sessions ---
+    } // Handle Duplicate Sessions
     let oldClient = null;
     for (const client of clients.values()) {
       if (client.email === userInfo.email) {
@@ -113,9 +78,8 @@ function setupWebSocketServer(httpServer) {
     }
 
     clients.set(ws, userInfo);
-    console.log(`Client connected: ${userInfo.name} (${userInfo.email})`);
+    console.log(`Client connected: ${userInfo.name} (${userInfo.email})`); // Readers-Writers Logic: On Connection
 
-    // --- Readers-Writers Logic: On Connection ---
     if (isWriting) {
       ws.send(
         JSON.stringify({
@@ -141,15 +105,11 @@ function setupWebSocketServer(httpServer) {
       })
     );
 
-    broadcastUserList();
+    broadcastUserList(); //  Only broadcast joined if it's not a reconnection
 
-    // --- FIX 1: Only broadcast "joined" if it's not a reconnection ---
     if (!isReconnection) {
       broadcastSystemMessage(`${userInfo.name} (${userInfo.role}) has joined.`);
-    }
-    // --- End Fix 1 ---
-
-    // --- Handle Incoming Messages (Chat) ---
+    } // Handle Incoming Messages (Chat)
     ws.on("message", (message) => {
       const parsedMessage = JSON.parse(message);
       const user = clients.get(ws);
@@ -166,12 +126,10 @@ function setupWebSocketServer(httpServer) {
             return;
           }
           handleWriteRequest(ws, parsedMessage);
-          break;
-        // Profile update is now handled by handleProfileUpdateConnection
+          break; // Profile update is now handled by handleProfileUpdateConnection
       }
     });
 
-    // --- On Close ---
     ws.on("close", (code, reason) => {
       const user = clients.get(ws);
       if (user) {
@@ -181,20 +139,17 @@ function setupWebSocketServer(httpServer) {
         if (user.role === "Reader") {
           readerCount--;
           console.log(`Reader left. Total readers: ${readerCount}`);
-        }
+        } // Don't broadcast "left" if it was a forced disconnect
 
-        // Don't broadcast "left" if it was a forced disconnect
         if (code === 1000 && reason === "Logged in from new location") {
           console.log(`Client force-disconnected: ${user.name}`);
           broadcastUserList(); // Still update user list
           return; // Don't start a timer
         }
 
-        // --- FIX 1: Start "left" timer ---
         console.log(
           `Client disconnected: ${user.name}. Starting 2-minute grace period.`
-        );
-        // Clear any old timer just in case
+        ); // Clear any old timer just in case
         if (disconnectTimers.has(user.email)) {
           clearTimeout(disconnectTimers.get(user.email));
         }
@@ -204,13 +159,11 @@ function setupWebSocketServer(httpServer) {
             `Grace period expired for ${user.name}. Broadcasting left message.`
           );
           broadcastSystemMessage(`${user.name} has left.`);
-          broadcastUserList(); // Update list *after* grace period
+          broadcastUserList(); // Update list after grace period
           disconnectTimers.delete(user.email);
         }, 120000); // 120 second (2 minute) grace period
 
         disconnectTimers.set(user.email, timer);
-        // --- End Fix 1 ---
-
         if (readerCount === 0 && !isWriting && writerQueue.length > 0) {
           console.log("Last reader left. Checking writer queue.");
           processWriterQueue();
@@ -223,7 +176,7 @@ function setupWebSocketServer(httpServer) {
   console.log("Readers-Writers WebSocket server is set up.");
 }
 
-// --- FIX 2: Isolated Handler for Profile Updates ---
+// Isolated Handler for Profile Updates
 function handleProfileUpdateConnection(ws, userInfo) {
   ws.on("message", (message) => {
     const parsedMessage = JSON.parse(message);
@@ -234,27 +187,23 @@ function handleProfileUpdateConnection(ws, userInfo) {
         console.log(
           `Updating profile for ${userInfo.email} via isolated connection. New name: ${newName}`
         );
-        const oldName = userInfo.name;
+        const oldName = userInfo.name; // 1. Update "persistent" user DB
 
-        // 1. Update "persistent" user DB
         const dbUser = users.get(userInfo.email);
         if (dbUser) {
           dbUser.name = newName;
-        }
+        } // 2. Update all active chat clients
 
-        // 2. Update all active chat clients
         const activeClient = Array.from(clients.values()).find(
           (c) => c.email === userInfo.email
         );
         if (activeClient) {
           activeClient.name = newName;
-        }
+        } // 3. Broadcast the change to all users
 
-        // 3. Broadcast the change to all users
         broadcastUserList();
-        broadcastSystemMessage(`${oldName} is now known as ${newName}.`);
+        broadcastSystemMessage(`${oldName} is now known as ${newName}.`); // 4. Send a new token back to the sender
 
-        // 4. Send a new token back to the sender
         const newToken = generateToken(dbUser);
         ws.send(
           JSON.stringify({
@@ -263,8 +212,7 @@ function handleProfileUpdateConnection(ws, userInfo) {
           })
         );
       }
-    }
-    // After processing, close this temporary socket
+    } // After processing, close this temporary socket
     ws.close();
   });
 
@@ -273,9 +221,8 @@ function handleProfileUpdateConnection(ws, userInfo) {
   );
   ws.on("error", (e) => console.error("Profile update socket error:", e));
 }
-// --- End Fix 2 ---
 
-// --- 8. Core Synchronization Functions ---
+// 8. Core Synchronization Functions
 
 function handleWriteRequest(ws, messageData) {
   if (isWriting || readerCount > 0) {
@@ -329,21 +276,40 @@ function processWrite(ws, messageData) {
   }, 50);
 }
 
+// Race condition
 function processWriterQueue() {
-  if (!isWriting && readerCount === 0 && writerQueue.length > 0) {
-    isWriting = true;
-    const nextWriter = writerQueue.shift();
-    console.log(
-      `Lock Acquired. Granting write access to queued writer ${
-        clients.get(nextWriter.ws).email
-      }`
-    );
-    processWrite(nextWriter.ws, nextWriter.messageData);
-  } else {
+  // Check conditions under which we cannot proceed
+  if (isWriting || readerCount > 0 || writerQueue.length === 0) {
     console.log(
       `Queue check: Cannot process. (Writing: ${isWriting}, Readers: ${readerCount}, Queue: ${writerQueue.length})`
     );
+    return; // Do nothing if conditions aren't right
   }
+
+  // Loop through the queue to find the next *valid* writer
+  while (writerQueue.length > 0) {
+    const nextWriter = writerQueue.shift();
+    const clientDetails = clients.get(nextWriter.ws);
+
+    if (clientDetails) {
+      // This is a valid, connected client
+      isWriting = true;
+      console.log(
+        `Lock Acquired. Granting write access to queued writer ${clientDetails.email}`
+      );
+      processWrite(nextWriter.ws, nextWriter.messageData);
+
+      // We found a writer and processed them, so exit the function
+      return;
+    } else {
+      // This client is stale (disconnected while in queue)
+      // Log it and let the loop continue to the next item in the queue
+      console.log("Skipping stale client in writerQueue.");
+    }
+  }
+
+  // If we get here, the queue was emptied but no valid writers were found
+  console.log("Queue check: All queued writers were stale.");
 }
 
 // --- 9. Utility Functions ---
